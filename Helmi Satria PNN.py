@@ -12,8 +12,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from sklearn.cross_validation import train_test_split
 
-# ax = plt.axes(projection='3d')
-
 dataSet = np.genfromtxt('data_train_PNN.txt', skip_header=1)
 dataTest= np.genfromtxt('data_test_PNN.txt', skip_header=1)
 
@@ -140,44 +138,95 @@ separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
 dataSumDistances = sumCol(separatedDataTrain, 1)
 
 # =============================================================================
-# Mulai butuh data set (sebelumnya belum butuh), 
+# Mulai butuh data tes set (sebelumnya belum butuh), 
 # sebelumnya masih olah data train buat dapetin sum distance buat cari F
 # =============================================================================
 
 # =============================================================================
 # Single (G) Validation
 # =============================================================================
-dataF = cariF(1.8, dataSumDistances, separatedDataTrain)
+dataF = cariF(6, dataSumDistances, separatedDataTrain)
 
 Prediction, x = main(Data_train, Data_test, dataF)
 
-print(ValidationTest(Data_test, Prediction, 1.8))
+print(ValidationTest(Data_test, Prediction, 6))
 
 dataX = np.array(x)[:,0]
 dataY = np.array(x)[:,1]
 dataZ = np.array(x)[:,2]
 dataClass = np.array(x)[:, 5]
 
-# ax.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
+try1 = plt.axes(projection='3d')
+try1.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
 
 # =============================================================================
 # End of Single (G) Validation
 # =============================================================================
 
 # =============================================================================
-# Test with multiple G - Find the most optimal G
+# Find the most optimal for G
+# =============================================================================
+# =============================================================================
+# 
+# index = 0
+# Result = []
+# while (np.floor(index) != 10):
+#     count = 0
+#     
+#     dataF = cariF(index, dataSumDistances, separatedDataTrain)
+#     Prediction, x = main(Data_train, Data_test, dataF)
+#     Result.append(ValidationTest(Data_test, Prediction, index))
+#     
+#     index += .01
+# 
+# df = pd.DataFrame(Result)
+# df.to_csv('result5.csv', header=None)
 # =============================================================================
 
-index = 0
-Result = []
-while (np.floor(index) != 10):
-    count = 0
-    
-    dataF = cariF(index, dataSumDistances, separatedDataTrain)
-    Prediction, x = main(Data_train, Data_test, dataF)
-    Result.append(ValidationTest(Data_test, Prediction, index))
-    
-    index += .01
 
-df = pd.DataFrame(Result)
-df.to_csv('result5.csv', header=None)
+
+# =============================================================================
+# =============================================================================
+# # Real Data Test Experiment
+# =============================================================================
+# =============================================================================
+
+dataX = np.array(dataTest)[:,0]
+dataY = np.array(dataTest)[:,1]
+dataZ = np.array(dataTest)[:,2]
+
+ax = plt.axes(projection='3d')
+ax.scatter(dataX, dataY, dataZ, cmap='viridis', linewidth=0.5)
+
+separatedClass = separateCol(uniqueClass, dataSet, 3)
+
+dataDistances = neighborDistance(separatedClass)
+
+dataDistances = np.concatenate((dataDistances[0], dataDistances[1], dataDistances[2]), axis=0)
+mergedSeparatedClass = np.concatenate((separatedClass[0], separatedClass[1], separatedClass[2]), axis=0)
+
+
+# Merging array distances with all Data Set
+dataWithDistanceMerged = []
+
+for i, val in enumerate(mergedSeparatedClass):
+    dataWithDistanceMerged.append(np.append(val, dataDistances[i]))
+
+separatedDataTrainClasses = separateCol(uniqueClass, dataWithDistanceMerged, 3)
+
+dataTrainDistClass = np.array(dataWithDistanceMerged)[:, (3, 4)]
+
+separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
+
+dataSumDistances = sumCol(separatedDataTrain, 1)
+
+dataF = cariF(6, dataSumDistances, separatedDataTrain)
+
+Prediction, x = main(dataWithDistanceMerged, dataTest, dataF)
+
+dataX = np.array(x)[:,0]
+dataY = np.array(x)[:,1]
+dataZ = np.array(x)[:,2]
+
+ax = plt.axes(projection='3d')
+ax.scatter(dataX, dataY, dataZ, c=Prediction, cmap='viridis', linewidth=0.5)
