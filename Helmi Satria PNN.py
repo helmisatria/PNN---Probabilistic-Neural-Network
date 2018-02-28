@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from sklearn.cross_validation import train_test_split
 
-ax = plt.axes(projection='3d')
+# ax = plt.axes(projection='3d')
 
 dataSet = np.genfromtxt('data_train_PNN.txt', skip_header=1)
 dataTest= np.genfromtxt('data_test_PNN.txt', skip_header=1)
@@ -88,13 +88,13 @@ def cariG(test, dataTrain, dataF):
             dataG.append(tmp)
     return dataG
 
-def ValidationTest(dataTest, resultTest):
+def ValidationTest(dataTest, resultTest, g):
     count = 0
     countDataTest = len(dataTest)
     for i, val in enumerate(dataTest):
         if (val[3] == resultTest[i]):
             count += 1
-    return count/countDataTest
+    return count/countDataTest, g
 
 def main(dataTrain, dataTest, dataF):
     Prediction = []
@@ -139,15 +139,45 @@ separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
 
 dataSumDistances = sumCol(separatedDataTrain, 1)
 
+# =============================================================================
+# Mulai butuh data set (sebelumnya belum butuh), 
+# sebelumnya masih olah data train buat dapetin sum distance buat cari F
+# =============================================================================
+
+# =============================================================================
+# Single (G) Validation
+# =============================================================================
 dataF = cariF(1.8, dataSumDistances, separatedDataTrain)
 
 Prediction, x = main(Data_train, Data_test, dataF)
 
-print(ValidationTest(Data_test, Prediction))
+print(ValidationTest(Data_test, Prediction, 1.8))
 
 dataX = np.array(x)[:,0]
 dataY = np.array(x)[:,1]
 dataZ = np.array(x)[:,2]
 dataClass = np.array(x)[:, 5]
 
-ax.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
+# ax.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
+
+# =============================================================================
+# End of Single (G) Validation
+# =============================================================================
+
+# =============================================================================
+# Test with multiple G - Find the most optimal G
+# =============================================================================
+
+index = 0
+Result = []
+while (np.floor(index) != 10):
+    count = 0
+    
+    dataF = cariF(index, dataSumDistances, separatedDataTrain)
+    Prediction, x = main(Data_train, Data_test, dataF)
+    Result.append(ValidationTest(Data_test, Prediction, index))
+    
+    index += .01
+
+df = pd.DataFrame(Result)
+df.to_csv('result5.csv', header=None)
