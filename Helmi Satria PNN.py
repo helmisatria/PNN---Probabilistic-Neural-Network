@@ -3,7 +3,7 @@
 """
 Created on Wed Feb 28 22:17:07 2018
 
-@author: helmisatria
+@author: helmisatria - 1301154325
 """
 
 import numpy as np
@@ -70,9 +70,6 @@ def sumCol(data, col):
 def cariF(g, dataSumDistances, separatedDataTrain):
     dataF = []
     for i, val in enumerate(dataSumDistances):
-        #print(g)
-        #print(dataSumDistances[i])
-        #print(len(separatedDataTrain[i]))
         dataF.append(float(g * dataSumDistances[i])/len(separatedDataTrain[i]))
     return(dataF)
     
@@ -81,7 +78,8 @@ def cariG(test, dataTrain, dataF):
     for y, rowTest in enumerate(test):
         for i, rowTrain in enumerate(dataTrain):
             typeClass = rowTrain[3]
-            calc = np.exp(-1 * (((rowTest[0] - rowTrain[0])**2) + ((rowTest[1] - rowTrain[1]) ** 2)) / 2 * dataF[int(typeClass)])
+            print('typeClass ', typeClass)
+            calc = np.exp(-1 * (((rowTest[0] - rowTrain[0])**2) + ((rowTest[1] - rowTrain[1]) ** 2) + ((rowTest[2] - rowTrain[2]) ** 2)) / 2 * (dataF[int(typeClass)]) ** 2)
             tmp = np.append(rowTrain, calc)
             dataG.append(tmp)
     return dataG
@@ -101,7 +99,7 @@ def main(dataTrain, dataTest, dataF):
         dataG = cariG([rowTest], dataTrain, dataF)
         # 3 = Class. separateCol 3 = separate an array to many based on col 3 (class)
         separateG = separateCol(uniqueClass, dataG, 3)
-        # 5 = G(x) per row
+        # 5 = G(x) (column) per row
         sumSeparateG = sumCol(separateG, 5)
         Prediction.append(sumSeparateG.index(max(sumSeparateG)))
         tmp = np.append(rowTest, sumSeparateG.index(max(sumSeparateG)))
@@ -115,14 +113,13 @@ dataDistances = neighborDistance(separatedClass)
 dataDistances = np.concatenate((dataDistances[0], dataDistances[1], dataDistances[2]), axis=0)
 mergedSeparatedClass = np.concatenate((separatedClass[0], separatedClass[1], separatedClass[2]), axis=0)
 
-
 # Merging array distances with all Data Set
 dataWithDistanceMerged = []
 
 for i, val in enumerate(mergedSeparatedClass):
     dataWithDistanceMerged.append(np.append(val, dataDistances[i]))
 # ----
-    
+
 # =============================================================================
 # After Distance Calculated
 # =============================================================================
@@ -183,8 +180,6 @@ try1.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
 # df.to_csv('result5.csv', header=None)
 # =============================================================================
 
-
-
 # =============================================================================
 # =============================================================================
 # # Real Data Test Experiment
@@ -205,7 +200,6 @@ dataDistances = neighborDistance(separatedClass)
 dataDistances = np.concatenate((dataDistances[0], dataDistances[1], dataDistances[2]), axis=0)
 mergedSeparatedClass = np.concatenate((separatedClass[0], separatedClass[1], separatedClass[2]), axis=0)
 
-
 # Merging array distances with all Data Set
 dataWithDistanceMerged = []
 
@@ -220,13 +214,18 @@ separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
 
 dataSumDistances = sumCol(separatedDataTrain, 1)
 
-dataF = cariF(6, dataSumDistances, separatedDataTrain)
+G = 6
+
+dataF = cariF(G, dataSumDistances, separatedDataTrain)
 
 Prediction, x = main(dataWithDistanceMerged, dataTest, dataF)
 
 dataX = np.array(x)[:,0]
 dataY = np.array(x)[:,1]
 dataZ = np.array(x)[:,2]
+
+df = pd.DataFrame(Prediction)
+df.to_csv('prediksi.txt', header=None, index=False)
 
 ax = plt.axes(projection='3d')
 ax.scatter(dataX, dataY, dataZ, c=Prediction, cmap='viridis', linewidth=0.5)
