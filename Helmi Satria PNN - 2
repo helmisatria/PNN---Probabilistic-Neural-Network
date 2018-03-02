@@ -13,7 +13,6 @@ from mpl_toolkits.mplot3d import axes3d, Axes3D
 from sklearn.cross_validation import train_test_split
 
 dataSet = np.genfromtxt('data_train_PNN.txt', skip_header=1)
-dataTest= np.genfromtxt('data_test_PNN.txt', skip_header=1)
 
 dataX = dataSet[:,0]
 dataY = dataSet[:,1]
@@ -72,7 +71,7 @@ def cariG(test, dataTrain, dataF):
     for y, rowTest in enumerate(test):
         for i, rowTrain in enumerate(dataTrain):
             typeClass = rowTrain[3]
-            print('typeClass ', typeClass)
+            #print('typeClass ', typeClass)
             calc = np.exp(-1 * (((rowTest[0] - rowTrain[0])**2) + ((rowTest[1] - rowTrain[1]) ** 2) + ((rowTest[2] - rowTrain[2]) ** 2)) / 2 * (dataF[int(typeClass)]) ** 2)
             tmp = np.append(rowTrain, calc)
             dataG.append(tmp)
@@ -86,6 +85,19 @@ def ValidationTest(dataTest, resultTest, g):
             count += 1
     return count/countDataTest, g
 
+def main(dataTrain, dataTest, dataF):
+    Prediction = []
+    x = []
+    for i, rowTest in enumerate(dataTest):
+        dataG = cariG([rowTest], dataTrain, dataF)
+        # 3 = Class. separateCol 3 = separate an array to many based on col 3 (class)
+        separateG = separateCol(uniqueClass, dataG, 3)
+        # 5 = G(x) (column) per row
+        sumSeparateG = sumCol(separateG, 5)
+        Prediction.append(sumSeparateG.index(max(sumSeparateG)))
+        tmp = np.append(rowTest, sumSeparateG.index(max(sumSeparateG)))
+        x.append(tmp)
+    return Prediction, x
 # =============================================================================
 # Data Preparation
 # =============================================================================
@@ -96,10 +108,59 @@ z2dataDistances = neighborDistance(z1separatedClass)
 # Split Data train
 Data_train, Data_test = train_test_split(z2dataDistances, test_size = 0.2)
 
-separatedDataTrainClasses = separateCol(uniqueClass, Data_train, 3)
+z3separatedDataTrainClasses = separateCol(uniqueClass, Data_train, 3)
 
-dataTrainDistClass = np.array(Data_train)[:, (3, 4)]
+z4dataTrainDistClass = np.array(Data_train)[:, (3, 4)]
 
-separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
+z5separatedDataTrain = separateCol(uniqueClass, z4dataTrainDistClass, 0)
 
-dataSumDistances = sumCol(separatedDataTrain, 1)
+z6dataSumDistances = sumCol(z5separatedDataTrain, 1)
+
+# =============================================================================
+# Mulai butuh data tes set (sebelumnya belum butuh), 
+# sebelumnya masih olah data train buat dapetin sum distance buat cari F
+# =============================================================================
+
+# =============================================================================
+# Single (G) Validation
+# =============================================================================
+dataF = cariF(6, z6dataSumDistances, z5separatedDataTrain)
+
+Prediction, x = main(Data_train, Data_test, dataF)
+
+dataX = np.array(x)[:,0]
+dataY = np.array(x)[:,1]
+dataZ = np.array(x)[:,2]
+dataClass = np.array(x)[:, 5]
+
+try1 = plt.axes(projection='3d')
+try1.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
+
+#print(ValidationTest(Data_test, Prediction, 6))
+# =============================================================================
+
+# =============================================================================
+# =============================================================================
+# # Real Data Test Experiment
+# =============================================================================
+# =============================================================================
+
+dataTest= np.genfromtxt('data_test_PNN.txt', skip_header=1)
+
+dataX = np.array(dataTest)[:,0]
+dataY = np.array(dataTest)[:,1]
+dataZ = np.array(dataTest)[:,2]
+
+ax = plt.axes(projection='3d')
+ax.scatter(dataX, dataY, dataZ, cmap='viridis', linewidth=0.5)
+
+x1separatedClass = separateCol(uniqueClass, dataSet, 3)
+x2dataDistances = neighborDistance(z1separatedClass)
+
+x3separatedDataTrainClasses = separateCol(uniqueClass, z2dataDistances, 3)
+
+x4dataTrainDistClass = np.array(z2dataDistances)[:, (3, 4)]
+
+x5separatedDataTrain = separateCol(uniqueClass, x4dataTrainDistClass, 0)
+
+x6dataSumDistances = sumCol(x5separatedDataTrain, 1)
