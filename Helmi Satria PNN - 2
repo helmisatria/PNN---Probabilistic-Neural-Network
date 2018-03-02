@@ -51,6 +51,7 @@ def neighborDistance(separatedClass):
             tmp = np.append(row, min(distances))
             dataClassDistance.append(tmp)
         dataDistances.append(dataClassDistance)
+    dataDistances = np.concatenate((dataDistances))
     return dataDistances
 
 def sumCol(data, col):
@@ -94,3 +95,11 @@ z2dataDistances = neighborDistance(z1separatedClass)
 
 # Split Data train
 Data_train, Data_test = train_test_split(z2dataDistances, test_size = 0.2)
+
+separatedDataTrainClasses = separateCol(uniqueClass, Data_train, 3)
+
+dataTrainDistClass = np.array(Data_train)[:, (3, 4)]
+
+separatedDataTrain = separateCol(uniqueClass, dataTrainDistClass, 0)
+
+dataSumDistances = sumCol(separatedDataTrain, 1)
