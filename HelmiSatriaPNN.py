@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 dataSet = np.genfromtxt('data_train_PNN.txt', skip_header=1)
 
@@ -136,14 +136,14 @@ z6dataSumDistances = sumCol(z5separatedDataTrain, 1)
 
 #Single (G) Validation
 
-dataF = cariF(73, z6dataSumDistances, z5separatedDataTrain)
+dataF = cariF(0.9, z6dataSumDistances, z5separatedDataTrain)
 x = main(Data_train, Data_test[0], dataF)
 # =============================================================================
 
 #Train all data set (Training)
 
-zzResults = mainAllTest(Data_train, Data_test, 6)
-print(validationTest(zzResults))
+zzResults = mainAllTest(Data_train, Data_test, 0.9)
+print(validationTest(zzResults), '%')
 
 # =============================================================================
 # Find the most optimal for G
@@ -151,14 +151,16 @@ print(validationTest(zzResults))
 def searchOptimumG():
     index = 0
     Result = []
-    while (np.floor(index) != 100):
+    while (np.floor(index) != 2):
         zzResults = mainAllTest(Data_train, Data_test, index)
         Result.append([validationTest(zzResults), index])
         
-        index += .1
+        print(Result)
+        
+        index += .01
         
     df = pd.DataFrame(Result)
-    df.to_csv('result5.csv', header=None, index=False)
+    df.to_csv('z12.csv', header=None, index=False)
 
 #searchOptimumG()
 # =============================================================================
@@ -171,15 +173,20 @@ def searchOptimumG():
 
 dataTest= np.genfromtxt('data_test_PNN.txt', skip_header=1)
 
-#zzResults = mainAllTest(dataSet, dataTest)
+zzResults = mainAllTest(dataSet, dataTest, 0.9)
 
 dataX = np.array(zzResults)[:,0]
 dataY = np.array(zzResults)[:,1]
 dataZ = np.array(zzResults)[:,2]
-dataClass = np.array(zzResults)[:, 5]
+#dataClass = np.array(zzResults)[:, 5]
+
+dataClass = np.array(zzResults)[:, 3]
 
 try1 = plt.axes(projection='3d')
 try1.scatter(dataX, dataY, dataZ, c=dataClass, cmap='viridis', linewidth=0.5)
+
+df = pd.DataFrame(dataClass)
+df.to_csv('prediksi.txt', header=None, index=False)
 
 # =============================================================================
 # try1 = plt.axes(projection='3d')
